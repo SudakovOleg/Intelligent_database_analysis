@@ -2,7 +2,7 @@ import psycopg2
 import numpy as np
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
-from SOM import SOMNetwork
+from SOM import SOM
 from kahonen import KahononNetwork
 from prettytable import PrettyTable
 
@@ -103,16 +103,11 @@ while True:
         net = KahononNetwork(4)
         som_dim = 2
         data = np.array(net.normalization(rows), dtype=float)
-        som = SOMNetwork(input_dim=4, dim=som_dim, dtype=tf.float64, sigma=3)
-        training_op, lr_summary, sigma_summary = som.training_op()
-        init = tf.global_variables_initializer()
-        with tf.Session() as sess:
-            init.run()
-            print(tf.reshape(som.w, [som_dim,som_dim,-1]).eval())
-            for i, elm in enumerate(data):
-                print('iter:', i)
-                sess.run(training_op, feed_dict={som.x: elm, som.n:i})
-            print(tf.reshape(som.w, [som_dim,som_dim,-1]).eval())
+        #Train a 20x30 SOM with 400 iterations
+        som = SOM(2, 1, 3, 400)
+        som.train(data)
+        #Get output grid
+        print(som.get_centroids())
         
     elif answer == 2:
         print("Add new product")
