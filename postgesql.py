@@ -1,8 +1,5 @@
 import psycopg2
 import numpy as np
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
-from SOM import SOM
 from kahonen import KahononNetwork
 from prettytable import PrettyTable
 
@@ -48,7 +45,7 @@ while True:
     #------Function view_all---------
     def view_all():
         cur = conn.cursor()
-        cur.execute("SELECT productname, manufacturer, productcount, price FROM products")
+        cur.execute("SELECT productname, manufacturer FROM products")
         rows = cur.fetchall()
         cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='products';")
         columns = cur.fetchall()
@@ -100,14 +97,10 @@ while True:
     if answer == 1:
         print("View all products")
         rows = view_all()
-        net = KahononNetwork(4)
-        som_dim = 2
+        net = KahononNetwork(2)
         data = np.array(net.normalization(rows), dtype=float)
-        #Train a 20x30 SOM with 400 iterations
-        som = SOM(2, 1, 3, 400)
-        som.train(data)
-        #Get output grid
-        print(som.get_centroids())
+        net.train(net.normalization(rows), 200)
+
         
     elif answer == 2:
         print("Add new product")
