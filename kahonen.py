@@ -1,17 +1,13 @@
 import numpy as np
+from scipy.spatial import distance
 import random
 
 class KahononNetwork(object):
     def __init__(self, input_n):
         self.input_n = input_n
-        self.output_n = 2
-        self.weights = np.zeros((self.input_n, self.output_n))
-        self.shuffle()
+        self.output_n = 10
+        self.weight = np.random.rand(self.input_n,self.output_n)
         
-    def shuffle(self):
-        for x in range(0,self.input_n):
-            for y in range(0,self.output_n):
-                self.weights[x][y] = random.uniform(0., 1.0)
 
     def print_weights(self):
         print(self.weights)
@@ -34,8 +30,7 @@ class KahononNetwork(object):
     
     def output_set(self, output_n):
         self.output_n = output_n
-        self.weights = np.zeros((self.input_n, self.output_n))
-        self.shuffle()
+        self.weight = np.random.rand(self.input_n,self.output_n)
         return self.output_n
     
     def information(self):
@@ -43,24 +38,51 @@ class KahononNetwork(object):
         print(self.output_n)
     
     def train(self, input_table, epohs):
-        for ep in range(0, epohs):
-            for data in input_table:
-                res = self.find_cluster(data)
-                min_res_index = res.argsort(0)[:1]
-                for x in range(0,self.input_n):
-                    self.weights[x][min_res_index] = self.weights[x][min_res_index] + 0.5 * (data[x] - self.weights[x][min_res_index])
-                print(data, res, min_res_index)
-                
+        n = len(input_table)
+        alpha = 1 # Коэфициент обучения
+        #Нулевой вектор длиной в количество даннх
+        addZeros = np.zeros((n, 1))
+        #Добавляем по 0 в конец каждого вектора в данных
+        input_table = np.append(input_table, addZeros, axis=1)
+        print("The SOM algorithm: \n")
+        print("The training data: \n", input_table)
+        print("\nTotal number of data: ",n)
+        print("Total number of features: ",self.input_n)
+        print("Total number of Clusters: ",self.output_n)
+        #Создаем пустую матрицу размера выход х количество данных + 1
+        C = np.zeros((self.output_n,self.input_n+1))
+        self.weight = np.random.rand(self.input_n,self.output_n)
+        print("\nThe initial self.weight: \n", np.round(self.weight,2))
+        for it in range(epohs): # Количество итераций
+             list_of_index = list(range(n))
+             random.shuffle(list_of_index)
+             for i in list_of_index: # Для каждого вектора из перемешанных данных
+                distMin = 99999999 # Инициализируем минимальную дистанцию
+                for j in range(self.output_n): # Для каждого выхода
+                    # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
+                    dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n]))
+                    # Если дистанция меньше минимальной - переопределяем
+                    if distMin>dist:
+                        distMin = dist
+                        jMin = j
+                        input_table[i,self.input_n] = j
+                # Определяем новое значение веса (новые веса = старые веса * (1 - альфа) + (альфа * все данные входа)
+                self.weight[:,jMin] = self.self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n]   
+             # Уменьшаем альфа
+             alpha = alpha * (1 - it/epohs)
+        print("\nThe final self.weight: \n",np.round(self.weight,4))
+        print("\nThe data with cluster number: \n", input_table) 
     
     def find_cluster(self, input_v):
-        if len(input_v) != self.input_n:
-            print("error")
-        res = np.zeros(self.output_n)
-        for y in range(0,self.output_n):
-            for x in range(0,self.input_n):
-                res[y] = res[y] + ((input_v[x] - self.weights[x][y]) ** 2.0)
-            res[y] = res[y] ** 0.5
-        return res
+        distMin = 99999999 # Инициализируем минимальную дистанцию
+        for j in range(self.output_n): # Для каждого выхода
+            # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
+            dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n]))
+            # Если дистанция меньше минимальной - переопределяем
+            if distMin>dist:
+                distMin = dist
+                jMin = j
+                input_table[i,self.input_n] = j
         
     def normalization(self, input_v):
         output_v = []
@@ -71,7 +93,7 @@ class KahononNetwork(object):
                     num_list = list(map(str,map(ord,elm)))
                     sum_of_num = 0.
                     for num in num_list:
-                        sum_of_num = sum_of_num + float(num)
+                        sum_of_num = sum_of_num + (float(num) ** 2)
                     num_data.append(sum_of_num)
                 else:
                     num_data.append(elm)
