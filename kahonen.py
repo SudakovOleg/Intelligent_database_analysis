@@ -49,9 +49,6 @@ class KahononNetwork(object):
         print("\nTotal number of data: ",n)
         print("Total number of features: ",self.input_n)
         print("Total number of Clusters: ",self.output_n)
-        #Создаем пустую матрицу размера выход х количество данных + 1
-        C = np.zeros((self.output_n,self.input_n+1))
-        self.weight = np.random.rand(self.input_n,self.output_n)
         print("\nThe initial self.weight: \n", np.round(self.weight,2))
         for it in range(epohs): # Количество итераций
              list_of_index = list(range(n))
@@ -60,14 +57,15 @@ class KahononNetwork(object):
                 distMin = 99999999 # Инициализируем минимальную дистанцию
                 for j in range(self.output_n): # Для каждого выхода
                     # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
-                    dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n]))
+                    dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n - 1]))
                     # Если дистанция меньше минимальной - переопределяем
                     if distMin>dist:
                         distMin = dist
                         jMin = j
                         input_table[i,self.input_n] = j
                 # Определяем новое значение веса (новые веса = старые веса * (1 - альфа) + (альфа * все данные входа)
-                self.weight[:,jMin] = self.self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n]   
+                print(input_table[i], input_table[i, self.input_n - 1])
+                self.weight[:,jMin] = self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n - 1]   
              # Уменьшаем альфа
              alpha = alpha * (1 - it/epohs)
         print("\nThe final self.weight: \n",np.round(self.weight,4))
@@ -77,12 +75,13 @@ class KahononNetwork(object):
         distMin = 99999999 # Инициализируем минимальную дистанцию
         for j in range(self.output_n): # Для каждого выхода
             # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
-            dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n]))
+            dist = np.square(distance.euclidean(self.weight[:,j], input_v[0:self.input_n]))
             # Если дистанция меньше минимальной - переопределяем
             if distMin>dist:
                 distMin = dist
                 jMin = j
-                input_table[i,self.input_n] = j
+                input_v[self.input_n] = j
+        return input
         
     def normalization(self, input_v):
         output_v = []
