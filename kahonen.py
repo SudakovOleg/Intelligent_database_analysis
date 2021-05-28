@@ -54,25 +54,25 @@ class KahononNetwork(object):
              list_of_index = list(range(n))
              random.shuffle(list_of_index)
              for i in list_of_index: # Для каждого вектора из перемешанных данных
-                distMin = 99999999 # Инициализируем минимальную дистанцию
+                distMin = float("inf") # Инициализируем минимальную дистанцию
                 for j in range(self.output_n): # Для каждого выхода
                     # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
-                    dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n - 1]))
+                    dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n]))
                     # Если дистанция меньше минимальной - переопределяем
                     if distMin>dist:
                         distMin = dist
                         jMin = j
                         input_table[i,self.input_n] = j
-                # Определяем новое значение веса (новые веса = старые веса * (1 - альфа) + (альфа * все данные входа)
-                print(input_table[i], input_table[i, self.input_n - 1])
-                self.weight[:,jMin] = self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n - 1]   
+                self.weight[:,jMin] = self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n]   
              # Уменьшаем альфа
              alpha = alpha * (1 - it/epohs)
         print("\nThe final self.weight: \n",np.round(self.weight,4))
-        print("\nThe data with cluster number: \n", input_table) 
+        print("\nThe data with cluster number: \n", input_table)
+        return input_table
     
     def find_cluster(self, input_v):
-        distMin = 99999999 # Инициализируем минимальную дистанцию
+        distMin = float("inf") # Инициализируем минимальную дистанцию
+        input_v = np.append(input_v, 0, axis=1)
         for j in range(self.output_n): # Для каждого выхода
             # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
             dist = np.square(distance.euclidean(self.weight[:,j], input_v[0:self.input_n]))
@@ -81,7 +81,7 @@ class KahononNetwork(object):
                 distMin = dist
                 jMin = j
                 input_v[self.input_n] = j
-        return input
+        return input_v
         
     def normalization(self, input_v):
         output_v = []
