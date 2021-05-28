@@ -45,7 +45,7 @@ while True:
     #------Function view_all---------
     def view_all():
         cur = conn.cursor()
-        cur.execute("SELECT productname, manufacturer FROM products")
+        cur.execute("SELECT productname, manufacturer, price FROM products")
         rows = cur.fetchall()
         cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='products';")
         columns = cur.fetchall()
@@ -97,9 +97,14 @@ while True:
     if answer == 1:
         print("View all products")
         rows = view_all()
-        net = KahononNetwork(2)
-        data = np.array(net.normalization(rows), dtype=float)
-        net.train(net.normalization(rows), 200)
+        net = KahononNetwork(3)
+        data = net.train(net.normalization(rows), 4000)
+        for out in range(net.output_n):
+            print("\n____CLUSTER  ", out, "____")
+            for i in range(len(rows)):
+                if int(data[i][-1]) == out:
+                    print(rows[i])
+            print("____________________")
 
         
     elif answer == 2:
