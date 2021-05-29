@@ -22,12 +22,15 @@ while True:
     #------Function print_menu---------
     def print_menu():
         space()
-        print("------   Menu    ------")
+        print("------    Menu    ------")
         print("1) View all products")
         print("2) Add new product")
         print("3) Update product")
         print("4) Delete product")
-        print("5) Exit")
+        print("5) Conduct training for the Kohonen network")
+        print("6) Conduct deep learning")
+        print("7) Check the data for validity")
+        print("8) Exit")
         print("------------------------")
         space()
         return int(input("You'r choice?: "))
@@ -49,7 +52,7 @@ while True:
         rows = cur.fetchall()
         cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='products';")
         columns = cur.fetchall()
-        #print_table(columns,rows)
+        print_table(columns,rows)
         return rows
     #------Function view_all---------
     
@@ -97,16 +100,6 @@ while True:
     if answer == 1:
         print("View all products")
         rows = view_all()
-        net = KahononNetwork(3)
-        data = net.train(net.normalization(rows), 4000)
-        for out in range(net.output_n):
-            print("\n____CLUSTER  ", out, "____")
-            for i in range(len(rows)):
-                if int(data[i][-1]) == out:
-                    print(rows[i])
-            print("____________________")
-
-        
     elif answer == 2:
         print("Add new product")
         add_product(input("Please, endter productname: "),
@@ -120,6 +113,25 @@ while True:
         print("Delete product")
         delete_product(input("What would you like to delete? (id): "))
     elif answer == 5:
+        cur = conn.cursor()
+        cur.execute("SELECT productname, manufacturer, price FROM products")
+        rows = cur.fetchall()
+        net = KahononNetwork(3)
+        print("Output before ", net.output_n)
+        net.output_calc(net.normalization(rows))
+        print("Output after ", net.output_n)
+        data = net.train(net.normalization(rows))
+        for out in range(net.output_n):
+            print("\n____CLUSTER  ", out, "____")
+            for i in range(len(rows)):
+                if int(data[i][-1]) == out:
+                    print(rows[i])
+            print("____________________")
+    elif answer == 6:
+        True
+    elif answer == 7:
+        True
+    elif answer == 8:
         break
     else:
         print("What did you mean?")

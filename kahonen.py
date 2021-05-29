@@ -12,21 +12,16 @@ class KahononNetwork(object):
     def print_weights(self):
         print(self.weights)
     
-    def output_calc(self, input_table, prev_mid = 0.):
-        sum_of_res = 0.
-        count_of_res = np.zeros((self.output_n,1))
-        for data in input_table:
-            res = self.find_cluster(data)
-            min_res_index = res.argsort(0)[:1]
-            max_res_index = res.argsort(0)[-1]
-            sum_of_res = sum_of_res + (res[max_res_index])
-            mid = sum_of_res / len(input_table)
-            print("Mid -", mid, " ", mid, " prev_mid = ", prev_mid)
-            if mid > prev_mid:
-                self.output_set(self.output_n + 1)
-                return self.output_calc(input_table, mid)
-            else:
-                return self.output_set(self.output_n - 1)
+    def output_calc(self, input_table):
+        self.output_set(int(len(input_table)/2))
+        clusters_in_use = {i: False for i in range(self.output_n)}
+        for data in self.train(input_table):
+            clusters_in_use[int(data[-1])] = True
+        index_in_use = 0
+        for key in clusters_in_use:
+            if clusters_in_use[key] == True:
+                index_in_use = index_in_use + 1
+        return self.output_set(index_in_use)
     
     def output_set(self, output_n):
         self.output_n = output_n
@@ -37,7 +32,7 @@ class KahononNetwork(object):
         print(self.input_n)
         print(self.output_n)
     
-    def train(self, input_table, epohs):
+    def train(self, input_table):
         n = len(input_table)
         alpha = 1 # Коэфициент обучения
         #Нулевой вектор длиной в количество даннх
@@ -50,7 +45,7 @@ class KahononNetwork(object):
         print("Total number of features: ",self.input_n)
         print("Total number of Clusters: ",self.output_n)
         print("\nThe initial self.weight: \n", np.round(self.weight,2))
-        for it in range(epohs): # Количество итераций
+        for it in range(n * 1000): # Количество итераций
              list_of_index = list(range(n))
              random.shuffle(list_of_index)
              for i in list_of_index: # Для каждого вектора из перемешанных данных
@@ -65,14 +60,14 @@ class KahononNetwork(object):
                         input_table[i,self.input_n] = j
                 self.weight[:,jMin] = self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n]   
              # Уменьшаем альфа
-             alpha = alpha * (1 - it/epohs)
+             alpha = alpha * (1 - it/n)
         print("\nThe final self.weight: \n",np.round(self.weight,4))
         print("\nThe data with cluster number: \n", input_table)
         return input_table
     
     def find_cluster(self, input_v):
         distMin = float("inf") # Инициализируем минимальную дистанцию
-        input_v = np.append(input_v, 0, axis=1)
+        input_v = np.append(input_v, 0)
         for j in range(self.output_n): # Для каждого выхода
             # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
             dist = np.square(distance.euclidean(self.weight[:,j], input_v[0:self.input_n]))
