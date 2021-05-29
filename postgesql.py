@@ -2,6 +2,7 @@ import psycopg2
 import numpy as np
 from kahonen import KahononNetwork
 from prettytable import PrettyTable
+from perseptron import Perception
 
 conn = psycopg2.connect(
   database="postgres", 
@@ -127,7 +128,31 @@ while True:
                     print(rows[i])
             print("____________________")
     elif answer == 6:
-        True
+        cur = conn.cursor()
+        cur.execute("SELECT productname, manufacturer, price FROM products")
+        rows = cur.fetchall()
+        net = KahononNetwork(3)
+        print("Output before ", net.output_n)
+        data = net.train_auto_output(net.normalization(rows))
+        print("Output after ", net.output_n)
+        for out in range(net.output_n):
+            print("\n____CLUSTER  ", out, "____")
+            for i in range(len(rows)):
+                if int(data[i][-1]) == out:
+                    print(rows[i])
+            print("____________________")
+        per = Perception(3, net.output_n, 1, 5)
+        train = []
+        for vector in data:
+            v = [0 for x in range(net.output_n)]
+            v[int(vector[-1])] = 1
+            print(v)
+            train.append(v)
+        train_y = np.array([np.array(x) for x in train[:]])
+        print(data, "x: ", data[0:-1,0:-1], "y: ", train[:-1])
+        per.train(data[0:-1,0:-1],train_y[:-1], net.output_n, 1)
+        print(data[-1,0:-1])
+        per.predict(data[:,0:-1])
     elif answer == 7:
         True
     elif answer == 8:
