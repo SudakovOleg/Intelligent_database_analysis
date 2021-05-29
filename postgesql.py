@@ -118,9 +118,8 @@ while True:
         rows = cur.fetchall()
         net = KahononNetwork(3)
         print("Output before ", net.output_n)
-        net.output_calc(net.normalization(rows))
+        data = net.train_auto_output(net.normalization(rows))
         print("Output after ", net.output_n)
-        data = net.train(net.normalization(rows))
         for out in range(net.output_n):
             print("\n____CLUSTER  ", out, "____")
             for i in range(len(rows)):
