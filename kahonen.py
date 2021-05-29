@@ -15,7 +15,7 @@ class KahononNetwork(object):
     def train_auto_output(self, input_table):
         self.output_set(int(len(input_table)/2))
         clusters_in_use = {i: False for i in range(self.output_n)}
-        new_table = self.train(input_table, len(input_table) * 1000)
+        new_table = self.train(input_table, len(input_table) * 100)
         for data in new_table:
             clusters_in_use[int(data[-1])] = True
         index_in_use = 0
