@@ -49,7 +49,7 @@ while True:
     #------Function view_all---------
     def view_all():
         cur = conn.cursor()
-        cur.execute("SELECT productname, manufacturer, price FROM products")
+        cur.execute("SELECT id, productname, manufacturer, productcount, price FROM products")
         rows = cur.fetchall()
         cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='products';")
         columns = cur.fetchall()
@@ -82,7 +82,7 @@ while True:
             value = input("Please, enter the new value: ")
             if field == "0":
                 break
-            excute_str = str("UPDATE products set " + field + "=" + value + "WHERE id=" + req_id)
+            excute_str = str("UPDATE products set '" + field + "'='" + value + "' WHERE id=" + req_id)
             cur.execute(excute_str)
             conn.commit()
     #------Function update_product--------- 
@@ -109,6 +109,7 @@ while True:
                     input("Please, enter price: "))
     elif answer == 3:
         print("Update product")
+        view_all()
         update_product(input("What would you like to update? (id): "))
     elif answer == 4:
         print("Delete product")
@@ -129,30 +130,37 @@ while True:
             print("____________________")
     elif answer == 6:
         cur = conn.cursor()
-        cur.execute("SELECT productname, manufacturer, price FROM products")
+        cur.execute("SELECT productname, manufacturer, price FROM public.products")
         rows = cur.fetchall()
         net = KahononNetwork(3)
         print("Output before ", net.output_n)
-        data = net.train_auto_output(net.normalization(rows))
+        data = net.normalization(rows)
+        data = net.train_auto_output(data[:-1])
         print("Output after ", net.output_n)
         for out in range(net.output_n):
             print("\n____CLUSTER  ", out, "____")
-            for i in range(len(rows)):
+            for i in range(len(rows) - 1):
                 if int(data[i][-1]) == out:
                     print(rows[i])
             print("____________________")
-        per = Perception(3, net.output_n, 1, 5)
+        per = Perception(3, net.output_n,  net.output_n * 1.5, 1)
         train = []
         for vector in data:
             v = [0 for x in range(net.output_n)]
             v[int(vector[-1])] = 1
             print(v)
             train.append(v)
+        v = [0 for x in range(net.output_n)]
+        train.append(v)
         train_y = np.array([np.array(x) for x in train[:]])
         print(data, "x: ", data[0:-1,0:-1], "y: ", train[:-1])
-        per.train(data[0:-1,0:-1],train_y[:-1], net.output_n, 1)
-        print(data[-1,0:-1])
-        per.predict(data[:,0:-1])
+        per.train(data[:-1,0:-1],train_y, 1000, 1)
+        cur = conn.cursor()
+        cur.execute("SELECT productname, manufacturer, price FROM public.products")
+        rows = cur.fetchall()
+        data = net.normalization(rows)
+        print(data)
+        per.predict(data, rows, train_y)
     elif answer == 7:
         True
     elif answer == 8:

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial import distance
 import random
+from sklearn import preprocessing
 
 class KahononNetwork(object):
     def __init__(self, input_n):
@@ -15,7 +16,7 @@ class KahononNetwork(object):
     def train_auto_output(self, input_table):
         self.output_set(int(len(input_table)/2))
         clusters_in_use = {i: False for i in range(self.output_n)}
-        new_table = self.train(input_table, len(input_table) * 100)
+        new_table = self.train(input_table, len(input_table) * 50)
         for data in new_table:
             clusters_in_use[int(data[-1])] = True
         index_in_use = 0
@@ -92,12 +93,12 @@ class KahononNetwork(object):
                     num_list = list(map(str,map(ord,elm)))
                     sum_of_num = 0.
                     for num in num_list:
-                        sum_of_num = sum_of_num + (float(num) ** 2)
-                    num_data.append(sum_of_num)
+                        sum_of_num = sum_of_num + (1/float(num))
+                    num_data.append(1/sum_of_num)
                 else:
-                    num_data.append(elm)
+                    num_data.append(1/elm)
             output_v.append(num_data)
-        
+        return preprocessing.normalize(output_v)
         for i in range(0, self.input_n):
             maximum = 0
             for data in output_v:
