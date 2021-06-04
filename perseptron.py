@@ -9,8 +9,10 @@ from tensorflow.keras import layers
 class Perception(object):
     def __init__(self, input_n, output_n, layout_n=0, layout_c=0):
         self.model = tf.keras.Sequential()
+        #Однослойная сеть (без скрытых слоев)
         if not layout_c:
             self.model.add(layers.Dense(units=output_n, activation='sigmoid', input_dim=input_n))
+        #Многослойная сеть
         else:
             self.model.add(layers.Dense(units=layout_n, activation='sigmoid', input_dim=input_n))
             self.model.add(layers.Dropout(0.3))
@@ -23,6 +25,7 @@ class Perception(object):
                             metrics=['accuracy'])
 
     def train(self, train_x, train_y, epohs, batch_size, validation_split=0.15):
+        #Тренировка сети и построение графиков
         print("Data for deep learning:\n", train_x)
         print("Labels for deep learning:\n",train_y)
         history = self.model.fit(train_x, train_y,
@@ -35,9 +38,10 @@ class Perception(object):
         plt.grid(True)
         plt.show()
 
-    def predict(self, data, lables, true_answers):
+    def predict(self, data, lables):
+        #Предсказание для каждого элемента отдельно с выводом его нечислового значения
         for elm_indx in range(len(data)):
-            print("Element:\n", np.array([data[elm_indx]]), lables[elm_indx], "Right Answer:\n", true_answers[elm_indx])
+            print("Element:\n", np.array([data[elm_indx]]), "\n", lables[elm_indx])
             test_x = np.array([data[elm_indx]])
             predict = self.model.predict(test_x)
             print("Answer:\n", predict)

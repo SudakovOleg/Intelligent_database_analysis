@@ -1,8 +1,8 @@
 import psycopg2
 import numpy as np
-from kahonen import KahononNetwork
+from controller_ai import Ai
 from prettytable import PrettyTable
-from perseptron import Perception
+from kahonen import KahononNetwork
 
 conn = psycopg2.connect(
   database="postgres", 
@@ -115,13 +115,16 @@ while True:
         print("Delete product")
         delete_product(input("What would you like to delete? (id): "))
     elif answer == 5:
+        #Извлечение данных из БД
         cur = conn.cursor()
         cur.execute("SELECT productname, manufacturer, price FROM products")
         rows = cur.fetchall()
+        #Обучение сети Кохонена, без персептрона
         net = KahononNetwork(3)
         print("Output before ", net.output_n)
         data = net.train_auto_output(net.normalization(rows))
         print("Output after ", net.output_n)
+        #Проверка результата обучения
         for out in range(net.output_n):
             print("\n____CLUSTER  ", out, "____")
             for i in range(len(rows)):
@@ -129,38 +132,14 @@ while True:
                     print(rows[i])
             print("____________________")
     elif answer == 6:
+        #Извлечение данных из БД
         cur = conn.cursor()
         cur.execute("SELECT productname, manufacturer, price FROM public.products")
         rows = cur.fetchall()
-        net = KahononNetwork(3)
-        print("Output before ", net.output_n)
-        data = net.normalization(rows)
-        data = net.train_auto_output(data[:-1])
-        print("Output after ", net.output_n)
-        for out in range(net.output_n):
-            print("\n____CLUSTER  ", out, "____")
-            for i in range(len(rows) - 1):
-                if int(data[i][-1]) == out:
-                    print(rows[i])
-            print("____________________")
-        per = Perception(3, net.output_n,  net.output_n * 1.5, 1)
-        train = []
-        for vector in data:
-            v = [0 for x in range(net.output_n)]
-            v[int(vector[-1])] = 1
-            print(v)
-            train.append(v)
-        v = [0 for x in range(net.output_n)]
-        train.append(v)
-        train_y = np.array([np.array(x) for x in train[:]])
-        print(data, "x: ", data[0:-1,0:-1], "y: ", train[:-1])
-        per.train(data[:-1,0:-1],train_y, 1000, 1)
-        cur = conn.cursor()
-        cur.execute("SELECT productname, manufacturer, price FROM public.products")
-        rows = cur.fetchall()
-        data = net.normalization(rows)
-        print(data)
-        per.predict(data, rows, train_y)
+        #Обучение сетей на всех строках таблицы кроме последней
+        ai = Ai(rows[:-1])
+        #Предсказание на всех строках таблицы
+        ai.predict(rows)
     elif answer == 7:
         True
     elif answer == 8:
