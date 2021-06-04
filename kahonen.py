@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.spatial import distance
 import random
-from sklearn import preprocessing
 
 class KahononNetwork(object):
     def __init__(self, input_n):
@@ -14,18 +13,28 @@ class KahononNetwork(object):
         print(self.weights)
     
     def train_auto_output(self, input_table):
+        #Начальное число кластеров половина данных
         self.output_set(int(len(input_table)/2))
+        #Добавляем индексы в словарь
         clusters_in_use = {i: False for i in range(self.output_n)}
+        #Тренируем в количестве эпох (входных параметров * 50)
         new_table = self.train(input_table, len(input_table) * 50)
+        #Запоминаем какие кластера были использованы
         for data in new_table:
             clusters_in_use[int(data[-1])] = True
+        
+        #Переменная текущего кластера
         index_in_use = 0
         for key in clusters_in_use:
+            #Для каждего кластера в котором есть значения
             if clusters_in_use[key] == True:
+                #Во всех данных с этим кластером обновляем кластер на значение текущего кластера
                 for data in new_table:
                     if key == int(data[-1]):
                         data[-1] = index_in_use
+                #Перед проверкой следующего не пустого кластера, инкрементируем значение текущего кластера
                 index_in_use = index_in_use + 1
+        #Ставим количество кластеров в сети равным по факту используемым
         self.output_set(index_in_use)
         return new_table
 
@@ -83,29 +92,4 @@ class KahononNetwork(object):
                 jMin = j
                 input_v[self.input_n] = j
         return input_v
-        
-    def normalization(self, input_v):
-        output_v = []
-        for data in input_v:
-            num_data = []
-            for elm in data:
-                if (type(elm) == str):
-                    num_list = list(map(str,map(ord,elm)))
-                    sum_of_num = 0.
-                    for num in num_list:
-                        sum_of_num = sum_of_num + (1/float(num))
-                    num_data.append(1/sum_of_num)
-                else:
-                    num_data.append(1/elm)
-            output_v.append(num_data)
-        return preprocessing.normalize(output_v)
-        for i in range(0, self.input_n):
-            maximum = 0
-            for data in output_v:
-                if data[i] > maximum:
-                    maximum = data[i]
-                    
-            for data in output_v:
-                data[i] = data[i] / maximum
-        return output_v
-        
+
