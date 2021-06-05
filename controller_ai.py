@@ -35,7 +35,7 @@ class Ai(object):
         
         #Выводим подготовленные данные и обучаем персептрон
         print(data, "x: ", data[:,0:-1], "y: ", train_y)
-        self.perseptron.train(data[:,0:-1],train_y, 100, 1)
+        self.perseptron.train(data[:,0:-1],train_y, 1000, 1)
 
     def predict(self, rows):
         data = normalization(rows, self.kahonen.input_n)
@@ -56,7 +56,12 @@ def normalization(input_data , input_n):
             else:
                 num_data.append(elm)
         output_v.append(num_data)
-    # return preprocessing.normalize(output_v)
+    output_v = preprocessing.normalize(np.reshape(output_v, (1,-1)))
+    for i in range(len(output_v[0])):
+        print(output_v[0][i])
+        while output_v[0][i] < 0.1:
+            output_v[0][i] *= 10
+    return np.reshape(output_v, (-1,input_n))
     for i in range(0, input_n):
         maximum = 0
         for data in output_v:

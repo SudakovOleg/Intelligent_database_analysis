@@ -135,13 +135,7 @@ while True:
         #Извлечение данных из БД
         cur = conn.cursor()
         cur.execute("SELECT productname, manufacturer, price FROM public.products")
-        rows = np.array([[1,0,0,0,0,0],
-                         [1,1,0,0,0,0],
-                         [1,1,1,0,0,0],
-                         [0,0,0,1,1,1],
-                         [0,0,0,0,1,1],
-                         [0,0,0,0,0,1],
-                         [1,0,0,0,0,1],])
+        rows = cur.fetchall()
         #Обучение сетей на всех строках таблицы кроме последней
         ai = Ai(rows[:-1])
         #Предсказание на всех строках таблицы

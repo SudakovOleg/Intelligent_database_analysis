@@ -18,7 +18,7 @@ class KahononNetwork(object):
         #Добавляем индексы в словарь
         clusters_in_use = {i: False for i in range(self.output_n)}
         #Тренируем в количестве эпох (входных параметров * 50)
-        new_table = self.train(input_table, len(input_table) * 10000)
+        new_table = self.train(input_table, len(input_table) * 100)
         #Запоминаем какие кластера были использованы
         for data in new_table:
             clusters_in_use[int(data[-1])] = True
@@ -61,21 +61,23 @@ class KahononNetwork(object):
         print("Total number of Clusters: ",self.output_n)
         print("\nThe initial self.weight: \n", np.round(self.weight,2))
         for it in range(epohs): # Количество итераций
-             list_of_index = list(range(n))
-             random.shuffle(list_of_index)
-             for i in list_of_index: # Для каждого вектора из перемешанных данных
-                distMin = float("inf") # Инициализируем минимальную дистанцию
-                for j in range(self.output_n): # Для каждого выхода
-                    # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
-                    dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n]))
-                    # Если дистанция меньше минимальной - переопределяем
-                    if distMin>dist:
-                        distMin = dist
-                        jMin = j
-                        input_table[i,self.input_n] = j
-                self.weight[:,jMin] = self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n]   
-             # Уменьшаем альфа
-             alpha = alpha * (1 - it/n)
+            list_of_index = list(range(n))
+            random.shuffle(list_of_index)
+            if not it % 1000:
+               print("Kahonen epoch: ",it)
+            for i in list_of_index: # Для каждого вектора из перемешанных данных
+               distMin = float("inf") # Инициализируем минимальную дистанцию
+               for j in range(self.output_n): # Для каждого выхода
+                   # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
+                   dist = np.square(distance.euclidean(self.weight[:,j], input_table[i,0:self.input_n]))
+                   # Если дистанция меньше минимальной - переопределяем
+                   if distMin>dist:
+                       distMin = dist
+                       jMin = j
+                       input_table[i,self.input_n] = j
+               self.weight[:,jMin] = self.weight[:,jMin]*(1-alpha) + alpha*input_table[i,0:self.input_n]   
+            # Уменьшаем альфа
+            alpha = alpha * (1 - it/n)
         print("\nThe final self.weight: \n",np.round(self.weight,4))
         print("\nThe data with cluster number: \n", input_table)
         return input_table
