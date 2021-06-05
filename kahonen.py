@@ -18,7 +18,7 @@ class KahononNetwork(object):
         #Добавляем индексы в словарь
         clusters_in_use = {i: False for i in range(self.output_n)}
         #Тренируем в количестве эпох (входных параметров * 50)
-        new_table = self.train(input_table, len(input_table) * 50)
+        new_table = self.train(input_table, len(input_table) * 10000)
         #Запоминаем какие кластера были использованы
         for data in new_table:
             clusters_in_use[int(data[-1])] = True
@@ -49,7 +49,7 @@ class KahononNetwork(object):
     
     def train(self, input_table , epohs):
         n = len(input_table)
-        alpha = 1 # Коэфициент обучения
+        alpha = 0.5 # Коэфициент обучения
         #Нулевой вектор длиной в количество даннх
         addZeros = np.zeros((n, 1))
         #Добавляем по 0 в конец каждого вектора в данных

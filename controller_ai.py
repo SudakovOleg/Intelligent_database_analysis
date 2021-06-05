@@ -5,11 +5,7 @@ from sklearn import preprocessing
 
 class Ai(object):
     def __init__(self, rows):
-        if not rows:
-            print("An empty array was passed")
-            return False
         input_size = len(rows[0])
-        
         #Тренируем сеть Кохонена
         self.kahonen = KahononNetwork(input_size)
         data = normalization(rows, input_size)
@@ -18,7 +14,7 @@ class Ai(object):
         #Выводим итог классификации
         for out in range(self.kahonen.output_n):
             print("\n____CLUSTER  ", out, "____")
-            for i in range(len(rows) - 1):
+            for i in range(len(rows)):
                 if int(data[i][-1]) == out:
                     print(rows[i])
             print("____________________")
@@ -32,18 +28,16 @@ class Ai(object):
             v[int(vector[-1])] = 1
             print(v)
             train.append(v)
-        v = [0 for x in range(self.kahonen.output_n)]
-        train.append(v)
+        while len(data) != len(train):
+            v = [0 for x in range(self.kahonen.output_n)]
+            train.append(v)
         train_y = np.array([np.array(x) for x in train[:]])
         
         #Выводим подготовленные данные и обучаем персептрон
-        print(data, "x: ", data[0:-1,0:-1], "y: ", train[:-1])
-        self.perseptron.train(data[:-1,0:-1],train_y, 10000, 1)
+        print(data, "x: ", data[:,0:-1], "y: ", train_y)
+        self.perseptron.train(data[:,0:-1],train_y, 100, 1)
 
     def predict(self, rows):
-        if not rows:
-            print("An empty array was passed")
-            return
         data = normalization(rows, self.kahonen.input_n)
         print(data)
         self.perseptron.predict(data, rows)
@@ -60,7 +54,7 @@ def normalization(input_data , input_n):
                     sum_of_num = sum_of_num - (float(num))
                 num_data.append(-1/sum_of_num)
             else:
-                num_data.append(1/elm)
+                num_data.append(elm)
         output_v.append(num_data)
     # return preprocessing.normalize(output_v)
     for i in range(0, input_n):
