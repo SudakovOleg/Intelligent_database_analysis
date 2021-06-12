@@ -123,29 +123,7 @@ while True:
             logging.debug("Answer = %s" % answer)
             return ""
 
-    
-    def view(table, columns="*"):
-        '''
-        String reading function. 
-        Retrieves data from a database table. 
-        '''
-        logging.debug("Table = %s" % table)
-        logging.debug("Columns = %s" % columns)
-        cur = conn.cursor()
-        cur.execute("SELECT " + ', '.join(columns) + "FROM " + table)
-        rows = cur.fetchall()
-        cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
-        columns = cur.fetchall()
-        logging.debug(rows)
-        logging.debug("Columns = %s" % columns)
-        print_table(columns,rows)
-    
-    def add(table):
-        '''
-        Function for adding rows to a table. 
-        Accepts the table and the id to change.
-        '''
-        logging.debug("Table = %s" % table)
+    def choose_columns(table):
         cur = conn.cursor()
         cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
         columns = []
@@ -183,7 +161,32 @@ while True:
             if answer > len_columns and not answer > (len(values_columns) + len_columns):
                 print(values_columns.pop(answer - (1 + len_columns)), " was deleted")
             os.system('cls||clear')
-        
+        return values_columns, columns
+    
+    def view(table, columns="*"):
+        '''
+        String reading function. 
+        Retrieves data from a database table. 
+        '''
+        logging.debug("Table = %s" % table)
+        logging.debug("Columns = %s" % columns)
+        cur = conn.cursor()
+        cur.execute("SELECT " + ', '.join(columns) + "FROM " + table)
+        rows = cur.fetchall()
+        cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
+        columns = cur.fetchall()
+        logging.debug(rows)
+        logging.debug("Columns = %s" % columns)
+        print_table(columns,rows)
+    
+    def add(table):
+        '''
+        Function for adding rows to a table. 
+        Accepts the table and the id to change.
+        '''
+        logging.debug("Table = %s" % table)
+        cur = conn.cursor()
+        values_columns, columns = choose_columns(table)
         logging.debug("Values_columns = %s" % values_columns)
         if not values_columns:
             return
@@ -211,47 +214,9 @@ while True:
         Accepts the table and the id to change.
         '''
         cur = conn.cursor()
-        cur.execute("SELECT * FROM " + table)
-        rows = cur.fetchall()
+        values_columns, columns = choose_columns(table)
         logging.debug("Req_id = %s" % req_id)
         logging.debug("Table = %s" % table)
-        cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
-        columns = []
-        for col in cur.fetchall():
-            col = str(col)
-            columns.append(col.replace('(', '').replace(')', '').replace(',', '').replace('\'', ''))
-        logging.debug("Columns = %s" % columns)
-        values_columns = []
-        while True:
-            input_num = 1
-            print("Enter the number to add the item to the table " + table + ": ")
-            for col in columns:
-                print(input_num, ") ", col)
-                input_num += 1
-            print("\nOr enter the number to exclude from the append: ")
-            for val in values_columns:
-                print(input_num, ") ", val)
-                input_num += 1
-            print("\n0) Enter zero to exit\n")
-            try:
-                answer = int(input("You'r choice?: "))
-            except Exception:
-                logging.debug("Answer = %s" % answer)
-                answer = -1
-            len_columns = len(columns)
-            logging.debug("Columns = %s" % columns)
-            logging.debug("Len_columns = %s" % len_columns)
-            logging.debug("Values_columns = %s" % values_columns)
-            logging.debug("Answer = %s" % answer)
-            if not answer:
-                break
-            if not (answer > len_columns) and answer > 0:
-                if not columns[answer - 1] in values_columns:
-                    print(values_columns.append(columns[answer - 1]), " was append")
-            if answer > len_columns and not answer > (len(values_columns) + len_columns):
-                print(values_columns.pop(answer - (1 + len_columns)), " was deleted")
-            os.system('cls||clear')
-        
         logging.debug("Values_columns = %s" % values_columns)
         if not values_columns:
             return
