@@ -141,6 +141,10 @@ while True:
         print_table(columns,rows)
     
     def add(table):
+        '''
+        Function for adding rows to a table. 
+        Accepts the table and the id to change.
+        '''
         logging.debug("Table = %s" % table)
         cur = conn.cursor()
         cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
@@ -201,19 +205,71 @@ while True:
     #------Function add_product---------                
     
     #------Function update_product--------- 
-    def update_product(req_id):
+    def update(table, req_id):
+        '''
+        Function for updating rows in a table. 
+        Accepts the table and the id to change.
+        '''
         cur = conn.cursor()
+        cur.execute("SELECT * FROM " + table)
+        rows = cur.fetchall()
+        logging.debug("Req_id = %s" % req_id)
+        logging.debug("Table = %s" % table)
+        cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
+        columns = []
+        for col in cur.fetchall():
+            col = str(col)
+            columns.append(col.replace('(', '').replace(')', '').replace(',', '').replace('\'', ''))
+        logging.debug("Columns = %s" % columns)
+        values_columns = []
         while True:
-            view()
-            field = input("What field would you like to edit? (use 0 for exit)")
-            if field == "0":
+            input_num = 1
+            print("Enter the number to add the item to the table " + table + ": ")
+            for col in columns:
+                print(input_num, ") ", col)
+                input_num += 1
+            print("\nOr enter the number to exclude from the append: ")
+            for val in values_columns:
+                print(input_num, ") ", val)
+                input_num += 1
+            print("\n0) Enter zero to exit\n")
+            try:
+                answer = int(input("You'r choice?: "))
+            except Exception:
+                logging.debug("Answer = %s" % answer)
+                answer = -1
+            len_columns = len(columns)
+            logging.debug("Columns = %s" % columns)
+            logging.debug("Len_columns = %s" % len_columns)
+            logging.debug("Values_columns = %s" % values_columns)
+            logging.debug("Answer = %s" % answer)
+            if not answer:
                 break
-            value = input("Please, enter the new value: ")
-            if field == "0":
-                break
-            excute_str = str("UPDATE products set '" + field + "'='" + value + "' WHERE id=" + req_id)
+            if not (answer > len_columns) and answer > 0:
+                if not columns[answer - 1] in values_columns:
+                    print(values_columns.append(columns[answer - 1]), " was append")
+            if answer > len_columns and not answer > (len(values_columns) + len_columns):
+                print(values_columns.pop(answer - (1 + len_columns)), " was deleted")
+            os.system('cls||clear')
+        
+        logging.debug("Values_columns = %s" % values_columns)
+        if not values_columns:
+            return
+        values = []
+        for val in values_columns:
+            values.append(val + " = '" + str(input("Please, endter " + str(val) + ": ")) + "'")
+        try:
+            excute_str = str("UPDATE " + table +
+                        " SET " + ", ".join(values) +
+                        " WHERE id = " + str(req_id))
+            logging.debug("Excute_str = %s" % excute_str)
             cur.execute(excute_str)
             conn.commit()
+            print("Records inserted successfully")
+            view(table)
+        except (Exception, Error) as error:
+            print("Error when working with PostgreSQL ", error)
+            conn.rollback()
     #------Function update_product--------- 
     
     #------Function delete_product--------- 
@@ -245,8 +301,20 @@ while True:
             add(table)
     elif answer == 3:
         print("Update product")
-        view()
-        update_product(input("What would you like to update? (id): "))
+        table = choose_table()
+
+        if not table:
+            print("Empty input")
+        else:
+            view(table)
+            try:
+                answer = int(input("You'r choice?(id): "))
+            except Exception:
+                logging.debug("Answer = %s" % answer)
+                print("Invalid value")
+                continue
+            os.system('cls||clear')
+            update(table, answer)
     elif answer == 4:
         print("Delete product")
         delete_product(input("What would you like to delete? (id): "))
