@@ -238,11 +238,16 @@ while True:
     #------Function update_product--------- 
     
     #------Function delete_product--------- 
-    def delete_product(req_id):
-        cur = conn.cursor()
-        excute_str = str("DELETE FROM products WHERE id=" + req_id)
-        cur.execute(excute_str)
-        conn.commit()
+    def delete(table, req_id):
+        try:
+            cur = conn.cursor()
+            excute_str = str("DELETE FROM " + table + " WHERE id=" + str(req_id))
+            cur.execute(excute_str)
+            conn.commit()
+            view(table)
+        except (Exception, Error) as error:
+            print("Error when working with PostgreSQL ", error)
+            conn.rollback()
     #------Function delete_product--------- 
     
     answer = print_menu()
@@ -267,7 +272,6 @@ while True:
     elif answer == 3:
         print("Update product")
         table = choose_table()
-
         if not table:
             print("Empty input")
         else:
@@ -282,7 +286,19 @@ while True:
             update(table, answer)
     elif answer == 4:
         print("Delete product")
-        delete_product(input("What would you like to delete? (id): "))
+        table = choose_table()
+        if not table:
+            print("Empty input")
+        else:
+            view(table)
+            try:
+                answer = int(input("You'r choice?(id): "))
+            except Exception:
+                logging.debug("Answer = %s" % answer)
+                print("Invalid value")
+                continue
+            os.system('cls||clear')
+            delete(table, answer)
     elif answer == 5:
         #Извлечение данных из БД
         cur = conn.cursor()
