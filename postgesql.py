@@ -1,18 +1,63 @@
+'''
+Argument parsing section. 
+Accepts command-line arguments and handles the main errors associated with them. 
+Only the module for working with arguments is enabled to speed up the program.
+'''
+import argparse
+
+parser = argparse.ArgumentParser(prog='DBscan',
+                                description='The program is designed to test an intelligent algorithm for scanning databases')
+required_args = parser.add_argument_group('required arguments')
+required_args.add_argument('-u','--user',dest='user',required=True,
+                        help='This is the user name for logging in to the database management system')
+required_args.add_argument('-p','--password',dest='password',required=True,
+                        help='This is the user password for logging in to the database management system')
+required_args.add_argument('-ip', '--host', dest='ip', required=True,
+                        help='Data to connect to a host with a database')
+parser.add_argument('-l', '--logging', dest='level', default="warning", 
+                        help='Setup logging level')
+args = parser.parse_args()
+
+'''
+Logging section. 
+An additional module is connected, which is responsible for logging the program and other modules. 
+It is configured before the program continues to work.
+'''
+import logging
+
+level_config = {'debug': logging.DEBUG, 'info': logging.INFO,
+                'warning': logging.WARNING}
+logging.basicConfig(format='%(levelname)s - %(message)s', level=level_config[args.level])
+
+'''
+The database connection section. 
+Displays information at the debug level about the data used for the connection. 
+Using a special module, it attempts to connect.
+'''
 import psycopg2
+
+logging.debug("user = %s" % args.user)
+logging.debug("password = %s" % "********")
+logging.debug("ip = %s" % args.ip)
+
+conn = psycopg2.connect(
+  database="postgres", 
+  user=args.user, 
+  password=args.password, 
+  host=args.ip, 
+  port="5432"
+)
+print("Database opened successfully")
+
+'''
+The main part of the program. 
+All necessary modules are loaded. The work starts with printing the menu. 
+The program is executed cyclically until an exit signal is received.
+'''
 import numpy as np
 from controller_ai import Ai
 from prettytable import PrettyTable
 from kahonen import KahononNetwork
-
-conn = psycopg2.connect(
-  database="postgres", 
-  user="postgres", 
-  password="admin", 
-  host="127.0.0.1", 
-  port="5432"
-)
-
-print("Database opened successfully")
 
 while True:
     #------Function space---------
@@ -117,7 +162,7 @@ while True:
     elif answer == 5:
         #Извлечение данных из БД
         cur = conn.cursor()
-        cur.execute("SELECT productname, manufacturer, price FROM products")
+        cur.execute("SELECT productname, manufacturer FROM products")
         rows = cur.fetchall()
         #Обучение сети Кохонена, без персептрона
         net = KahononNetwork(3)
@@ -134,7 +179,7 @@ while True:
     elif answer == 6:
         #Извлечение данных из БД
         cur = conn.cursor()
-        cur.execute("SELECT productname, manufacturer, price FROM public.products")
+        cur.execute("SELECT productname, manufacturer FROM public.products")
         rows = cur.fetchall()
         #Обучение сетей на всех строках таблицы кроме последней
         ai = Ai(rows[:-1])
