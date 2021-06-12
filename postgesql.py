@@ -104,6 +104,26 @@ while True:
             table.add_row(row[:cols])
         print(table)
     
+    def choose_table():
+        cur = conn.cursor()
+        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('information_schema','pg_catalog');")
+        tables = []
+        for col in cur.fetchall():
+            col = str(col)
+            tables.append(col.replace('(', '').replace(')', '').replace(',', '').replace('\'', ''))
+        logging.debug("Tables = %s" % tables)
+        input_num = 1
+        for table in tables:
+            print(input_num, ") " + str(table) + ": ")
+            input_num += 1
+        try:
+            answer = int(input("You'r choice?: "))
+            return tables[answer - 1]
+        except Exception:
+            logging.debug("Answer = %s" % answer)
+            return ""
+
+    
     def view(table, columns="*"):
         '''
         String reading function. 
@@ -209,24 +229,20 @@ while True:
     if answer == 1:
         os.system('cls||clear')
         print("View all")
-        try:
-            table = input("Enter the name of the table: ")
-        except Exception:
-            logging.debug("Table = %s" % table)
-            print("Invalid input. Please repeat again")
-            os.system('pause')
-        print("View all " + table)
-        view(table)
+        table = choose_table()
+        if not table:
+            print("Empty input")
+        else:
+            print("View all " + table)
+            view(table)
     elif answer == 2:
         os.system('cls||clear')
         print("Add new product")
-        try:
-            table = input("Enter the name of the table: ")
-        except Exception:
-            logging.debug("Table = %s" % table)
-            print("Invalid input. Please repeat again")
-            os.system('pause')
-        add(table)
+        table = choose_table()
+        if not table:
+            print("Empty input")
+        else:
+            add(table)
     elif answer == 3:
         print("Update product")
         view()
