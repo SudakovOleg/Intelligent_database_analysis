@@ -35,19 +35,23 @@ Displays information at the debug level about the data used for the connection.
 Using a special module, it attempts to connect.
 '''
 import psycopg2
+from psycopg2 import Error
 
 logging.debug("user = %s" % args.user)
 logging.debug("password = %s" % "********")
 logging.debug("ip = %s" % args.ip)
 
-conn = psycopg2.connect(
-  database="postgres", 
-  user=args.user, 
-  password=args.password, 
-  host=args.ip, 
-  port="5432"
-)
-print("Database opened successfully")
+try:
+    conn = psycopg2.connect(
+      database="postgres", 
+      user=args.user, 
+      password=args.password, 
+      host=args.ip, 
+      port="5432"
+    )
+    print("Database opened successfully")
+except (Exception, Error) as error:
+    print("Error when working with PostgreSQL ", error)
 
 '''
 The main part of the program. 
@@ -83,7 +87,7 @@ while True:
         try:
             answer = int(input("You'r choice?: "))
         except Exception:
-            logging.debug(answer)
+            logging.debug("Answer = %s" % answer)
             answer = -1
         return answer
     
@@ -100,40 +104,87 @@ while True:
             table.add_row(row[:cols])
         print(table)
     
-    def view_all(table, columns="*"):
+    def view(table, columns="*"):
         '''
         String reading function. 
         Retrieves data from a database table. 
         '''
-        logging.debug(table)
-        logging.debug(columns)
+        logging.debug("Table = %s" % table)
+        logging.debug("Columns = %s" % columns)
         cur = conn.cursor()
         cur.execute("SELECT " + ', '.join(columns) + "FROM " + table)
         rows = cur.fetchall()
         cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
         columns = cur.fetchall()
         logging.debug(rows)
-        logging.debug(columns)
+        logging.debug("Columns = %s" % columns)
         print_table(columns,rows)
     
-    def add_product(productname, manufacturer, productcount, price):
+    def add(table):
+        logging.debug("Table = %s" % table)
         cur = conn.cursor()
-        excute_str = str("INSERT INTO products (productname, manufacturer, productcount, price) " +
-                     "VALUES ('" + productname + "', " 
-                            "'" + manufacturer + "', "
-                                + productcount + ", "
-                                + price + ")")
-        cur.execute(excute_str)
-        conn.commit()
-        print("Records inserted successfully")
-        view_all()
+        cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
+        columns = []
+        for col in cur.fetchall():
+            col = str(col)
+            columns.append(col.replace('(', '').replace(')', '').replace(',', '').replace('\'', ''))
+        logging.debug("Columns = %s" % columns)
+        values_columns = []
+        while True:
+            input_num = 1
+            print("Enter the number to add the item to the table " + table + ": ")
+            for col in columns:
+                print(input_num, ") ", col)
+                input_num += 1
+            print("\nOr enter the number to exclude from the append: ")
+            for val in values_columns:
+                print(input_num, ") ", val)
+                input_num += 1
+            print("\n0) Enter zero to exit\n")
+            try:
+                answer = int(input("You'r choice?: "))
+            except Exception:
+                logging.debug("Answer = %s" % answer)
+                answer = -1
+            len_columns = len(columns)
+            logging.debug("Columns = %s" % columns)
+            logging.debug("Len_columns = %s" % len_columns)
+            logging.debug("Values_columns = %s" % values_columns)
+            logging.debug("Answer = %s" % answer)
+            if not answer:
+                break
+            if not (answer > len_columns) and answer > 0:
+                if not columns[answer - 1] in values_columns:
+                    print(values_columns.append(columns[answer - 1]), " was append")
+            if answer > len_columns and not answer > (len(values_columns) + len_columns):
+                print(values_columns.pop(answer - (1 + len_columns)), " was deleted")
+            os.system('cls||clear')
+        
+        logging.debug("Values_columns = %s" % values_columns)
+        if not values_columns:
+            return
+        values = []
+        for val in values_columns:
+            values.append(str(input("Please, endter " + str(val) + ": ")))
+        try:
+            excute_str = str("INSERT INTO " + table + " (" + ", ".join(values_columns) + ") " +
+                        "VALUES ('" + "', '".join(values) + "')")
+            logging.debug("Excute_str = %s" % excute_str)
+            cur.execute(excute_str)
+            conn.commit()
+            print("Records inserted successfully")
+            view(table)
+        except (Exception, Error) as error:
+            print("Error when working with PostgreSQL ", error)
+            conn.rollback()
+            
     #------Function add_product---------                
     
     #------Function update_product--------- 
     def update_product(req_id):
         cur = conn.cursor()
         while True:
-            view_all()
+            view()
             field = input("What field would you like to edit? (use 0 for exit)")
             if field == "0":
                 break
@@ -157,23 +208,28 @@ while True:
     
     if answer == 1:
         os.system('cls||clear')
+        print("View all")
         try:
             table = input("Enter the name of the table: ")
         except Exception:
-            logging.debug(table)
+            logging.debug("Table = %s" % table)
             print("Invalid input. Please repeat again")
             os.system('pause')
         print("View all " + table)
-        view_all(table)
+        view(table)
     elif answer == 2:
+        os.system('cls||clear')
         print("Add new product")
-        add_product(input("Please, endter productname: "),
-                    input("Please, enter manufacturer: "),
-                    input("Please, enter productcount: "),
-                    input("Please, enter price: "))
+        try:
+            table = input("Enter the name of the table: ")
+        except Exception:
+            logging.debug("Table = %s" % table)
+            print("Invalid input. Please repeat again")
+            os.system('pause')
+        add(table)
     elif answer == 3:
         print("Update product")
-        view_all()
+        view()
         update_product(input("What would you like to update? (id): "))
     elif answer == 4:
         print("Delete product")
