@@ -82,9 +82,8 @@ while True:
         
         try:
             answer = int(input("You'r choice?: "))
-            logging.debug(answer)
         except Exception:
-            logging.debug(Exception)
+            logging.debug(answer)
             answer = -1
         return answer
     
@@ -93,26 +92,30 @@ while True:
         Function for printing a table. 
         Accepts a list of headers and a list of data.
         '''
+        logging.debug(headers)
+        logging.debug(data)
         cols = len(headers)
         table = PrettyTable(headers)
         for row in data:
             table.add_row(row[:cols])
         print(table)
     
-    def view_all():
+    def view_all(table, columns="*"):
         '''
-        String reading function. Retrieves data from a database table. 
-        Returns a list of table rows
+        String reading function. 
+        Retrieves data from a database table. 
         '''
+        logging.debug(table)
+        logging.debug(columns)
         cur = conn.cursor()
-        cur.execute("SELECT id, productname, manufacturer, productcount, price FROM products")
+        cur.execute("SELECT " + ', '.join(columns) + "FROM " + table)
         rows = cur.fetchall()
-        cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='products';")
+        cur.execute("SELECT column_name FROM information_schema.columns WHERE information_schema.columns.table_name='" + table + "';")
         columns = cur.fetchall()
+        logging.debug(rows)
+        logging.debug(columns)
         print_table(columns,rows)
-        return rows
     
-    #------Function add_product---------
     def add_product(productname, manufacturer, productcount, price):
         cur = conn.cursor()
         excute_str = str("INSERT INTO products (productname, manufacturer, productcount, price) " +
@@ -154,8 +157,14 @@ while True:
     
     if answer == 1:
         os.system('cls||clear')
-        print("View all products")
-        rows = view_all()
+        try:
+            table = input("Enter the name of the table: ")
+        except Exception:
+            logging.debug(table)
+            print("Invalid input. Please repeat again")
+            os.system('pause')
+        print("View all " + table)
+        view_all(table)
     elif answer == 2:
         print("Add new product")
         add_product(input("Please, endter productname: "),
