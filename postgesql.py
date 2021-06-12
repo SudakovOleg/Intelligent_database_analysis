@@ -54,20 +54,20 @@ The main part of the program.
 All necessary modules are loaded. The work starts with printing the menu. 
 The program is executed cyclically until an exit signal is received.
 '''
+import os
 import numpy as np
 from controller_ai import Ai
 from prettytable import PrettyTable
 from kahonen import KahononNetwork
 
 while True:
-    #------Function space---------
-    def space():
-        print("\n\n")
-    #------Function space---------
-    
-    #------Function print_menu---------
+    os.system('cls||clear')
+
     def print_menu():
-        space()
+        '''
+        Menu print function. 
+        In addition to printing, it handles exceptions for incorrect input.
+        '''
         print("------    Menu    ------")
         print("1) View all products")
         print("2) Add new product")
@@ -78,21 +78,32 @@ while True:
         print("7) Check the data for validity")
         print("8) Exit")
         print("------------------------")
-        space()
-        return int(input("You'r choice?: "))
-    #------Function print_menu---------
+        print("\n")
+        
+        try:
+            answer = int(input("You'r choice?: "))
+            logging.debug(answer)
+        except Exception:
+            logging.debug(Exception)
+            answer = -1
+        return answer
     
-    #------Function print_table---------
     def print_table(headers, data):
+        '''
+        Function for printing a table. 
+        Accepts a list of headers and a list of data.
+        '''
         cols = len(headers)
         table = PrettyTable(headers)
         for row in data:
             table.add_row(row[:cols])
         print(table)
-    #------Function print_table---------
     
-    #------Function view_all---------
     def view_all():
+        '''
+        String reading function. Retrieves data from a database table. 
+        Returns a list of table rows
+        '''
         cur = conn.cursor()
         cur.execute("SELECT id, productname, manufacturer, productcount, price FROM products")
         rows = cur.fetchall()
@@ -100,7 +111,6 @@ while True:
         columns = cur.fetchall()
         print_table(columns,rows)
         return rows
-    #------Function view_all---------
     
     #------Function add_product---------
     def add_product(productname, manufacturer, productcount, price):
@@ -141,9 +151,9 @@ while True:
     #------Function delete_product--------- 
     
     answer = print_menu()
-    space()
     
     if answer == 1:
+        os.system('cls||clear')
         print("View all products")
         rows = view_all()
     elif answer == 2:
@@ -190,4 +200,5 @@ while True:
     elif answer == 8:
         break
     else:
-        print("What did you mean?")
+        print("Invalid input. Please repeat again")
+    os.system('pause')
