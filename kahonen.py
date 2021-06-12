@@ -18,7 +18,7 @@ class KahononNetwork(object):
         #Добавляем индексы в словарь
         clusters_in_use = {i: False for i in range(self.output_n)}
         #Тренируем в количестве эпох (входных параметров * 50)
-        new_table = self.train(input_table, len(input_table) * 100)
+        new_table = self.train(input_table, len(input_table) * 50)
         #Запоминаем какие кластера были использованы
         for data in new_table:
             clusters_in_use[int(data[-1])] = True
@@ -83,15 +83,16 @@ class KahononNetwork(object):
         return input_table
     
     def find_cluster(self, input_v):
-        distMin = float("inf") # Инициализируем минимальную дистанцию
         input_v = np.append(input_v, 0)
+        result = -1
         for j in range(self.output_n): # Для каждого выхода
-            # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
-            dist = np.square(distance.euclidean(self.weight[:,j], input_v[0:self.input_n]))
-            # Если дистанция меньше минимальной - переопределяем
-            if distMin>dist:
-                distMin = dist
-                jMin = j
+            cluster_sum = 0
+            for i in range (self.input_n):
+                # Считаем дистанцию (квадрат из евкидовой суммы всех весов выхода и всех данных входа
+                cluster_sum += input_v[i] * self.weight[i][j]
+                # Если дистанция меньше минимальной - переопределяем
+            if cluster_sum > result:
+                result = j
                 input_v[self.input_n] = j
-        return input_v
+        return result
 

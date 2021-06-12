@@ -4,6 +4,7 @@ import sys
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.models import load_model
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras import metrics
@@ -25,13 +26,16 @@ class Perception(object):
         self.model.compile(loss='categorical_crossentropy',
                             optimizer='sgd',
                             metrics=metrics.categorical_accuracy)
+    def load(self, file):
+        del self.model
+        self.model = load_model(file)
 
-    def train(self, train_x, train_y, epohs, batch_size, validation_split=0):
+    def train(self, train_x, train_y, epohs, batch_size, validation_split=0, file='best_model.h5'):
         #Тренировка сети и построение графиков
         print("Data for deep learning:\n", train_x)
         print("Labels for deep learning:\n",train_y)
         # Set callback functions to early stop training and save the best model so far
-        callbacks = [ModelCheckpoint(filepath='best_model.h5', monitor='loss', save_best_only=True)]
+        callbacks = [ModelCheckpoint(filepath=file, monitor='loss', save_best_only=True)]
         history = self.model.fit(train_x, train_y,
         epochs=epohs,
         batch_size=batch_size,

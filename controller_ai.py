@@ -4,11 +4,15 @@ from perseptron import Perception
 from sklearn import preprocessing
 
 class Ai(object):
-    def __init__(self, rows):
+    def __init__(self):
+        self.kahonen = KahononNetwork(1)
+        self.perseptron = Perception(1,1,1)
+
+    def train(self, rows, file):
         input_size = len(rows[0])
         #Тренируем сеть Кохонена
         self.kahonen = KahononNetwork(input_size)
-        data = normalization(rows, input_size)
+        data = normalization(rows)
         data = self.kahonen.train_auto_output(data)
         
         #Выводим итог классификации
@@ -35,14 +39,18 @@ class Ai(object):
         
         #Выводим подготовленные данные и обучаем персептрон
         print(data, "x: ", data[:,0:-1], "y: ", train_y)
-        self.perseptron.train(data[:,0:-1],train_y, 1000, 1)
+        self.perseptron.train(data[:,0:-1],train_y, 1000, 1, file=file)
+    
+    def load(self, file):
+        self.perseptron.load(file)
 
     def predict(self, rows):
-        data = normalization(rows, self.kahonen.input_n)
+        data = normalization(rows)
         print(data)
         self.perseptron.predict(data, rows)
 
-def normalization(input_data , input_n):
+def normalization(input_data):
+    input_n = len(input_data[0])
     output_v = []
     for data in input_data:
         num_data = []
