@@ -83,10 +83,9 @@ def print_menu():
     print("2) Add new product")
     print("3) Update product")
     print("4) Delete product")
-    print("5) Conduct training for the Kohonen network")
-    print("6) Conduct deep learning")
-    print("7) Check the data for validity")
-    print("8) Execute an SQL query")
+    print("5) Conduct deep learning")
+    print("6) Check the data for validity")
+    print("7) Execute an SQL query")
     print("0) Exit")
     print("------------------------")
     print("\n")
@@ -148,6 +147,7 @@ def choose_columns(table):
     logging.debug("Columns = %s" % columns)
     values_columns = []
     while True:
+        os.system('cls||clear')
         input_num = 1
         print("Enter the number to add the item to the table " + table + ": ")
         for col in columns:
@@ -175,7 +175,6 @@ def choose_columns(table):
                 print(values_columns.append(columns[answer - 1]), " was append")
         if answer > len_columns and not answer > (len(values_columns) + len_columns):
             print(values_columns.pop(answer - (1 + len_columns)), " was deleted")
-        os.system('cls||clear')
     return values_columns, columns
 
 def view(table, columns="*"):
@@ -281,7 +280,27 @@ def executeSQL(SQL):
             print("Error when working with PostgreSQL ", error)
             conn.rollback()
 
+def preparing_rows(table):
+    logging.debug("Table = %s" % table)
+    cur = conn.cursor()
+    values_columns, columns = choose_columns(table)
+    logging.debug("Values_columns = %s" % values_columns)
+    if not values_columns:
+        return
+    try:
+        excute_str = str("SELECT " + ", ".join(values_columns) + " FROM " + table)
+        logging.debug("Excute_str = %s" % excute_str)
+        cur.execute(excute_str)
+        rows = cur.fetchall()
+    except (Exception, Error) as error:
+        print("Error when working with PostgreSQL ", error)
+        conn.rollback()
+        
+    return rows
+
 def menu():
+    ai = Ai()
+    
     while True:
         os.system('cls||clear')
         answer = print_menu()
@@ -334,34 +353,23 @@ def menu():
                 os.system('cls||clear')
                 delete(table, answer)
         elif answer == 5:
-            #Извлечение данных из БД
-            cur = conn.cursor()
-            cur.execute("SELECT productname, manufacturer FROM products")
-            rows = cur.fetchall()
-            #Обучение сети Кохонена, без персептрона
-            net = KahononNetwork(3)
-            print("Output before ", net.output_n)
-            data = net.train_auto_output(net.normalization(rows))
-            print("Output after ", net.output_n)
-            #Проверка результата обучения
-            for out in range(net.output_n):
-                print("\n____CLUSTER  ", out, "____")
-                for i in range(len(rows)):
-                    if int(data[i][-1]) == out:
-                        print(rows[i])
-                print("____________________")
+            table = choose_table()
+            if not table:
+                print("Empty input")
+            else:
+                rows = preparing_rows(table)
+                ai.train(rows)
         elif answer == 6:
-            #Извлечение данных из БД
-            cur = conn.cursor()
-            cur.execute("SELECT productname, manufacturer FROM public.products")
-            rows = cur.fetchall()
-            #Обучение сетей на всех строках таблицы кроме последней
-            ai = Ai(rows[:-1])
-            #Предсказание на всех строках таблицы
-            ai.predict(rows)
+            if not ai.trained:
+                print("The intelligent algorithm is not yet trained.")
+            else:
+                table = choose_table()
+                if not table:
+                    print("Empty input")
+                else:
+                    rows = preparing_rows(table)
+                    ai.predict(rows)
         elif answer == 7:
-            True
-        elif answer == 8:
             try:
                 SQL = str(input("Enter SQL: "))
                 executeSQL(SQL)

@@ -7,8 +7,9 @@ class Ai(object):
     def __init__(self):
         self.kahonen = KahononNetwork(1)
         self.perseptron = Perception(1,1,1)
+        self.trained = False
 
-    def train(self, rows, file):
+    def train(self, rows, file='best_model.h5'):
         input_size = len(rows[0])
         #Тренируем сеть Кохонена
         self.kahonen = KahononNetwork(input_size)
@@ -40,8 +41,9 @@ class Ai(object):
         #Выводим подготовленные данные и обучаем персептрон
         print(data, "x: ", data[:,0:-1], "y: ", train_y)
         self.perseptron.train(data[:,0:-1],train_y, 1000, 1, file=file)
+        self.trained = True
     
-    def load(self, file):
+    def load(self, file='best_model.h5'):
         self.perseptron.load(file)
 
     def predict(self, rows):
